@@ -18,7 +18,7 @@ const writeToDatabase = (line, resolve, reject) => {
 
 const generateData = () => {
   const lines= [];
-  for (let i = 0; i < 1000; i += 1) {
+  for (let i = 0; i < 100; i += 1) {
     const row = {};
     lineCounter += 1;
     const fakeName = `${faker.company.bsNoun()} ${faker.company.catchPhraseNoun()} ${faker.lorem.word()} ${lineCounter}`;
