@@ -3,6 +3,7 @@ const faker = require('faker');
 const moment = require('moment');
 const connection = require('./connection');
 let lineCounter = 0;
+let batchCounter = 0;
 
 const writeToDatabase = (line, resolve, reject) => {
   const query = 'INSERT INTO reservations.restaurants JSON ? ;';
@@ -72,9 +73,9 @@ const generateData = () => {
 
 const getPromise = (line) => new Promise((resolve, reject) => {
   writeToDatabase(line, () => {
-    if (lineCounter % 20000 === 0) {
+    if (lineCounter % 2000 === 0) {
       console.clear();
-      console.log(`${((lineCounter / 10000000) * 100).toFixed(2)}% completed`);
+      console.log(`${lineCounter} lines in bacth ${batchCounter} completed`);
     }
     resolve();
   }, reject);
@@ -85,8 +86,9 @@ const seed = () => {
   const promises = lines.map(line => {
     return getPromise(line);
   });
+  batchCounter += 1;
   Promise.all(promises).then(() => {
-    if (lineCounter < 10000000) {
+    if (batchCounter < 100) {
       seed();
     } else {
       connection.shutdown();
