@@ -1,12 +1,8 @@
 /* eslint-disable no-console */
-const path = require('path');
-const LineByLine = require('n-readlines');
-
-const csvFile = new LineByLine(path.join(__dirname, './data/restaurantsNoSQL.csv'));
+const faker = require('faker');
+const moment = require('moment');
 const connection = require('./connection');
-
 let lineCounter = 0;
-let promise;
 
 const writeToDatabase = (line, resolve, reject) => {
   const query = 'INSERT INTO reservations.restaurants JSON ? ;';
@@ -14,29 +10,88 @@ const writeToDatabase = (line, resolve, reject) => {
     if (error) {
       reject(error);
     } else {
-      lineCounter += 1;
-      if (lineCounter % 20000 === 0) {
-        console.clear();
-        console.log(`${((lineCounter / 10000000) * 100).toFixed(2)}% completed`);
-      }
       resolve();
     }
   });
 }
 
-const getPromise = () => new Promise((resolve, reject) => {
-  const line = csvFile.next().toString();
-  console.log(line);
-  if (line !== 'false') {
-    writeToDatabase(line, () => {
-      console.log(line);
-      promise.then(getPromise);
-      resolve();
-    }, reject);
-  } else {
-    connection.shutdown();
-    resolve();
+const generateData = () => {
+  const lines= [];
+  for (let i = 0; i < 1000; i += 1) {
+    const row = {};
+    lineCounter += 1;
+    const fakeName = `${faker.company.bsNoun()} ${faker.company.catchPhraseNoun()} ${faker.lorem.word()} ${lineCounter}`;
+    let availableTable = (5 + Math.floor(Math.random() * 10));
+    const totalTable = availableTable;
+    let openingHour = 9 + Math.floor(Math.random() * 3);
+    if (openingHour < 10) {
+      openingHour = `0${openingHour}`;
+    }
+    if (Math.random() >= 0.5) {
+      openingHour += ':30';
+    } else {
+      openingHour += ':00';
+    }
+    let closingHour = 20 + Math.floor(Math.random() * 4);
+    if (Math.random() >= 0.5) {
+      closingHour += ':30';
+    } else {
+      closingHour += ':00';
+    }
+    const reservationNumber = Math.floor(Math.random() * 5);
+    const reservations = [];
+    for (let j = 0; j < reservationNumber; j += 1) {
+      const reservation = {};
+      const fakePerson = `${faker.name.findName()}`;
+      const randomReservation = faker.date.future(0.05);
+      let randomTime = parseInt(12 + (Math.random() * 10), 10);
+      if (Math.random() >= 0.5) {
+        randomTime += ':30:00';
+      } else {
+        randomTime += ':00:00';
+      }
+      const fakeReservation = `${moment(randomReservation).format('YYYY-MM-DD')} ${randomTime}`;
+      reservation.id = faker.random.uuid();
+      reservation.reservee = fakePerson;
+      reservation.reservation_time = fakeReservation;
+      reservations.push(reservation);
+      availableTable -= 1;
+    }
+    row.id = faker.random.uuid();
+    row.name = fakeName;
+    row.available_table = availableTable;
+    row.total_table = totalTable;
+    row.opening_hour = openingHour;
+    row.closing_hour = closingHour;
+    row.reservations = reservations;
+    let line = JSON.stringify(row);
+    lines.push(line);
   }
+  return lines;
+}
+
+const getPromise = (line) => new Promise((resolve, reject) => {
+  writeToDatabase(line, () => {
+    if (lineCounter % 20000 === 0) {
+      console.clear();
+      console.log(`${((lineCounter / 10000000) * 100).toFixed(2)}% completed`);
+    }
+    resolve();
+  }, reject);
 });
 
-promise = getPromise();
+const seed = () => {
+  const lines = generateData();
+  const promises = lines.map(line => {
+    return getPromise(line);
+  });
+  Promise.all(promises).then(() => {
+    if (lineCounter < 10000000) {
+      seed();
+    } else {
+      connection.shutdown();
+    }
+  });
+}
+
+seed();

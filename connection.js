@@ -2,7 +2,7 @@
 /* eslint-disable consistent-return */
 const cassandra = require('cassandra-driver');
 
-// change the contactPoints to your own end point
+// change the contactPoints to your own end point and username + password
 const authProvider = new cassandra.auth.PlainTextAuthProvider('cassandra', 'cassandra');
 const client = new cassandra.Client({
   contactPoints: ['127.0.0.1'],
