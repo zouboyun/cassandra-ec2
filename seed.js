@@ -4,6 +4,7 @@ const moment = require('moment');
 const connection = require('./connection');
 let lineCounter = 0;
 let batchCounter = 0;
+const lines;
 
 const writeToDatabase = (line, resolve, reject) => {
   const query = 'INSERT INTO reservations.restaurants JSON ? ;';
@@ -82,7 +83,7 @@ const getPromise = (line) => new Promise((resolve, reject) => {
 });
 
 const seed = () => {
-  const lines = generateData();
+  lines = generateData();
   const promises = lines.map(line => {
     return getPromise(line);
   });
