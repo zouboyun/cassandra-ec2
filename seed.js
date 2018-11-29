@@ -19,7 +19,7 @@ const writeToDatabase = (line, resolve, reject) => {
 
 const generateData = () => {
   const lines= [];
-  for (let i = 0; i < 50; i += 1) {
+  for (let i = 0; i < 100; i += 1) {
     const row = {};
     lineCounter += 1;
     const fakeName = `${faker.company.bsNoun()} ${faker.company.catchPhraseNoun()} ${faker.lorem.word()} ${lineCounter}`;
@@ -89,7 +89,7 @@ const seed = () => {
   });
   batchCounter += 1;
   Promise.all(promises).then(() => {
-    if (batchCounter < 1000) {
+    if (batchCounter < 100) {
       seed();
     } else {
       connection.shutdown();
