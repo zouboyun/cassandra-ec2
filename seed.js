@@ -4,7 +4,7 @@ const moment = require('moment');
 const connection = require('./connection');
 let lineCounter = 0;
 let batchCounter = 0;
-const lines;
+let lines;
 
 const writeToDatabase = (line, resolve, reject) => {
   const query = 'INSERT INTO reservations.restaurants JSON ? ;';
