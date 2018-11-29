@@ -90,7 +90,7 @@ const seed = () => {
   });
   batchCounter += 1;
   Promise.all(promises).then(() => {
-    if (batchCounter < 100) {
+    if (batchCounter < 40) {
       seed();
     } else {
       connection.shutdown();
