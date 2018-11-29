@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const faker = require('faker');
 const moment = require('moment');
+const Promise = require('bluebird');
 const connection = require('./connection');
 let lineCounter = 0;
 let batchCounter = 0;

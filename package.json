@@ -10,6 +10,7 @@
   "author": "zouboyun",
   "license": "ISC",
   "dependencies": {
+    "bluebird": "^3.5.3",
     "cassandra-driver": "^3.5.0",
     "faker": "^4.1.0",
     "moment": "^2.22.2"
