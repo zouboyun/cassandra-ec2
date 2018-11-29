@@ -1,11 +1,16 @@
 /* eslint-disable no-console */
+const Promise = require('bluebird');
+const path = require('path');
+const fs = require('fs');
 const faker = require('faker');
 const moment = require('moment');
-const Promise = require('bluebird');
 const connection = require('./connection');
+
 let lineCounter = 0;
 let batchCounter = 0;
 let lines;
+
+const filePath = path.join(__dirname, './data.json');
 
 const writeToDatabase = (line, resolve, reject) => {
   const query = 'INSERT INTO reservations.restaurants JSON ? ;';
@@ -18,7 +23,7 @@ const writeToDatabase = (line, resolve, reject) => {
   });
 }
 
-const generateData = () => {
+const generateData = (callback) => {
   const lines= [];
   for (let i = 0; i < 100; i += 1) {
     const row = {};
@@ -70,31 +75,45 @@ const generateData = () => {
     let line = JSON.stringify(row);
     lines.push(line);
   }
-  return lines;
+  fs.writeFile(filePath, JSON.stringify(lines), 'utf8', (err) => {
+    if (err) {
+      console.log('error writing file...');
+    } else {
+      callback();
+    }
+  });
 }
 
 const getPromise = (line) => new Promise((resolve, reject) => {
   writeToDatabase(line, () => {
-    if (lineCounter % 2000 === 0) {
+    if (lineCounter % 2 === 0) {
       console.clear();
-      console.log(`${lineCounter} lines in bacth ${batchCounter} completed`);
+      console.log(`${lineCounter} lines in batch ${batchCounter} completed`);
     }
     resolve();
   }, reject);
 });
 
 const seed = () => {
-  lines = generateData();
-  const promises = lines.map(line => {
-    return getPromise(line);
-  });
-  batchCounter += 1;
-  Promise.all(promises).then(() => {
-    if (batchCounter < 40) {
-      seed();
-    } else {
-      connection.shutdown();
-    }
+  generateData(() => {
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (err) {
+        console.log('error reading file...');
+      } else {
+        lines = JSON.parse(data);
+        const promises = lines.map(line => {
+          return getPromise(line);
+        });
+        batchCounter += 1;
+        Promise.all(promises).then(() => {
+          if (batchCounter < 10000) {
+            seed();
+          } else {
+            connection.shutdown();
+          }
+        });
+      }
+    });
   });
 }
 
